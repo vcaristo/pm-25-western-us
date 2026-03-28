@@ -106,6 +106,18 @@ def run_fold(args):
     (fold_idx, held_out_site, held_out_state, data_path, feature_cols, base_indices, aot_idx, smogI_idx, smogP_idx, doy_idx,
      inducing_list, n_epochs, batch_size, gpu_id, patience, lr) = args
 
+    df_clean = pd.read_parquet(data_path)
+
+    test_mask = df_clean['ll_id'] == held_out_site
+    train_df = df_clean[~test_mask]
+    test_df = df_clean[test_mask]
+
+    X_train = train_df[feature_cols].values
+    y_train_raw = train_df['pm25'].values
+    X_test = test_df[feature_cols].values
+    y_test_raw = test_df['pm25'].values
+    test_dates = test_df['date'].dt.strftime('%Y%m%d').values
+
     device = torch.device(f'cuda:{gpu_id}')
     torch.manual_seed(42 + fold_idx)
     np.random.seed(42 + fold_idx)
@@ -423,17 +435,7 @@ def main():
     # Prepare fold arguments
     fold_args = []
     for i, held_out_site in enumerate(loso_sites):
-        test_mask = df_clean['ll_id'] == held_out_site
-        train_df = df_clean[~test_mask]
-        test_df = df_clean[test_mask]
-        if len(test_df) == 0:
-            continue
-
-        X_train = train_df[feature_cols].values
-        y_train_raw = train_df['pm25'].values
-        X_test = test_df[feature_cols].values
-        y_test_raw = test_df['pm25'].values
-        test_dates = test_df['date'].dt.strftime('%Y%m%d').values
+       
         gpu_id = i % n_gpus
 
         fold_args.append((
