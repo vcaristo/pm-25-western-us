@@ -453,7 +453,11 @@ def main():
     cv_start = time.perf_counter()
 
     results = []
-    with mp.Pool(processes=n_gpus, maxtasksperchild=1) as pool:
+
+    n_workers = n_gpus * 3 # experiment with this
+
+    #with mp.Pool(processes=n_gpus, maxtasksperchild=1) as pool:
+    with mp.Pool(processes=n_workers) as pool:
         async_results = []
         for fa in fold_args:
             ar = pool.apply_async(run_fold, (fa,))
