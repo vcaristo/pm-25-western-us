@@ -10,6 +10,7 @@ Usage:
   python loso_cv_svgp_parallel.py --states MT,ID,WY --n_sites 20
 """
 import sys
+import os
 sys.path.insert(0, '../..')
 import argparse
 import json
@@ -355,41 +356,45 @@ def main():
     print(f"Using {n_gpus} GPUs")
 
     # Load data — full CONUS, all years
-    print("\nLoading full dataset...")
-    load_start = time.perf_counter()
-    pm_all = pd.read_csv("../../data/pm25_data_complete_2003_2021_smogI_tmax_corrected_032726.csv",
-                         low_memory=False)
-    pm_fixed = pd.read_csv('../../data/pm25_locs_with_states.csv')
-    load_time = time.perf_counter() - load_start
-    print(f"  Loaded {len(pm_all):,} observations in {load_time:.1f}s")
-
-    pm_all['date'] = pd.to_datetime(pm_all['date'], format='%Y%m%d')
-
-    time_varying_features = ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP']
-    static_features = ['lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k',
-                       'heavy_industrial_ind1', 'housing']
-
-    available_tv = [f for f in time_varying_features if f in pm_all.columns]
-    available_static = [f for f in static_features if f in pm_fixed.columns]
-
-    pm_subset = pm_all[['ll_id', 'date', 'pm25'] + available_tv].copy()
-    static_df = pm_fixed[['ll_id', 'state'] + available_static].copy()
-    df = pm_subset.merge(static_df, on='ll_id', how='left')
-    df['day_of_year'] = df['date'].dt.dayofyear
-
-    feature_cols = available_tv + available_static + ['day_of_year']
-    aot_idx = feature_cols.index('aot')
-    smogI_idx = feature_cols.index('smogI')
-    smogP_idx = feature_cols.index('smogP')
-    doy_idx = feature_cols.index('day_of_year')
-    seasonal_interaction_features = {'aot', 'smogI', 'smogP', 'day_of_year'}
-    base_indices = [i for i, f in enumerate(feature_cols) if f not in seasonal_interaction_features]
-
-    df_clean = df.dropna(subset=feature_cols + ['pm25']).copy()
-
-    # save data to parquet
     data_path = 'loso_temp_data.parquet'
-    df_clean.to_parquet(data_path)
+    if (os.path.exists(data_path)):
+        print("\nLoading cached dataset...")
+        df_clean = pd.read_parquet(data_path)
+    else:
+        print("\nLoading full dataset...")
+        load_start = time.perf_counter()
+        pm_all = pd.read_csv("../../data/pm25_data_complete_2003_2021_smogI_tmax_corrected_032726.csv",
+                            low_memory=False)
+        pm_fixed = pd.read_csv('../../data/pm25_locs_with_states.csv')
+        load_time = time.perf_counter() - load_start
+        print(f"  Loaded {len(pm_all):,} observations in {load_time:.1f}s")
+
+        pm_all['date'] = pd.to_datetime(pm_all['date'], format='%Y%m%d')
+
+        time_varying_features = ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP']
+        static_features = ['lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k',
+                        'heavy_industrial_ind1', 'housing']
+
+        available_tv = [f for f in time_varying_features if f in pm_all.columns]
+        available_static = [f for f in static_features if f in pm_fixed.columns]
+
+        pm_subset = pm_all[['ll_id', 'date', 'pm25'] + available_tv].copy()
+        static_df = pm_fixed[['ll_id', 'state'] + available_static].copy()
+        df = pm_subset.merge(static_df, on='ll_id', how='left')
+        df['day_of_year'] = df['date'].dt.dayofyear
+
+        feature_cols = available_tv + available_static + ['day_of_year']
+        aot_idx = feature_cols.index('aot')
+        smogI_idx = feature_cols.index('smogI')
+        smogP_idx = feature_cols.index('smogP')
+        doy_idx = feature_cols.index('day_of_year')
+        seasonal_interaction_features = {'aot', 'smogI', 'smogP', 'day_of_year'}
+        base_indices = [i for i, f in enumerate(feature_cols) if f not in seasonal_interaction_features]
+
+        df_clean = df.dropna(subset=feature_cols + ['pm25']).copy()
+
+        # save data to parquet
+        df_clean.to_parquet(data_path)
 
     # Build site-to-state mapping
     site_state_map = df_clean.groupby('ll_id')['state'].first().to_dict()
@@ -454,7 +459,7 @@ def main():
 
     results = []
 
-    n_workers = n_gpus * 3 # experiment with this
+    n_workers = n_gpus * 5 # 4*5 = 20 --> run all folds at once! 
 
     #with mp.Pool(processes=n_gpus, maxtasksperchild=1) as pool:
     with mp.Pool(processes=n_workers) as pool:
