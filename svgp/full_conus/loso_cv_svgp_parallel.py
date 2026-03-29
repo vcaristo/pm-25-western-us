@@ -405,6 +405,8 @@ def main():
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--n_sites', type=int, default=N_LOSO_SITES,
                         help='Number of random sites for LOSO evaluation')
+    parser.add_argument('--workers_per_gpu', type=int, default=1,
+                        help='Number of parallel workers per GPU (default 1)')
     parser.add_argument('--states', type=str, default=None,
                         help='Comma-separated list of state abbreviations to sample LOSO sites from (e.g. MT,ID,WY). If omitted, samples from all states.')
     args = parser.parse_args()
@@ -418,7 +420,8 @@ def main():
     inducing_list = [int(x) for x in args.n_inducing.split(',')]
 
     print(f"Run tag: {run_tag}")
-    print(f"Configuration: n_gpus={args.n_gpus}, n_epochs={args.n_epochs}, "
+    print(f"Configuration: n_gpus={args.n_gpus}, workers_per_gpu={args.workers_per_gpu}, "
+          f"n_epochs={args.n_epochs}, "
           f"batch_size={args.batch_size}, patience={args.patience}, lr={args.lr}")
     states_desc = args.states if args.states else 'all'
     print(f"Full CONUS dataset — {args.n_sites} random LOSO sites (states: {states_desc})")
@@ -541,9 +544,8 @@ def main():
 
     results = []
 
-    n_workers = n_gpus * 1 # 4*5 = 20 --> run all folds at once! 
+    n_workers = n_gpus * args.workers_per_gpu
 
-    #with mp.Pool(processes=n_gpus, maxtasksperchild=1) as pool:
     with mp.Pool(processes=n_workers) as pool:
         async_results = []
         for fa in fold_args:
