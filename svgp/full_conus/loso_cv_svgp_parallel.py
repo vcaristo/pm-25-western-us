@@ -13,8 +13,10 @@ import sys
 import os
 sys.path.insert(0, '../..')
 import argparse
+import glob as globmod
 import json
 import time
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import torch
@@ -28,6 +30,43 @@ np.random.seed(42)
 torch.manual_seed(42)
 
 N_LOSO_SITES = 10
+
+
+def get_run_tag():
+    """Generate a run tag like '032926_1' based on current date and existing runs."""
+    date_str = datetime.now().strftime('%m%d%y')
+    os.makedirs('runs', exist_ok=True)
+    existing = globmod.glob(f'runs/{date_str}_*')
+    run_nums = []
+    for f in existing:
+        parts = os.path.basename(f).split('_')
+        if len(parts) >= 2:
+            try:
+                run_nums.append(int(parts[-1]))
+            except ValueError:
+                pass
+    run_num = max(run_nums, default=0) + 1
+    tag = f'{date_str}_{run_num}'
+    os.makedirs(f'runs/{tag}', exist_ok=True)
+    return tag
+
+
+class Tee:
+    """Write to both stdout and a log file."""
+    def __init__(self, filepath):
+        self.file = open(filepath, 'w')
+        self.stdout = sys.stdout
+
+    def write(self, data):
+        self.stdout.write(data)
+        self.file.write(data)
+
+    def flush(self):
+        self.stdout.flush()
+        self.file.flush()
+
+    def close(self):
+        self.file.close()
 
 
 class SVGPSeasonalInteraction(gpytorch.models.ApproximateGP):
@@ -107,6 +146,8 @@ def run_fold(args):
     (fold_idx, held_out_site, held_out_state, data_path, feature_cols, base_indices, aot_idx, smogI_idx, smogP_idx, doy_idx,
      inducing_list, n_epochs, batch_size, gpu_id, patience, lr) = args
 
+    tag = f"[Fold {fold_idx:2d} | GPU {gpu_id}]"
+
     df_clean = pd.read_parquet(data_path)
 
     test_mask = df_clean['ll_id'] == held_out_site
@@ -118,6 +159,9 @@ def run_fold(args):
     X_test = test_df[feature_cols].values
     y_test_raw = test_df['pm25'].values
     test_dates = test_df['date'].dt.strftime('%Y%m%d').values
+
+    print(f"{tag} site={held_out_site} ({held_out_state}), "
+          f"n_train={len(train_df):,}, n_test={len(test_df):,}", flush=True)
 
     device = torch.device(f'cuda:{gpu_id}')
     torch.manual_seed(42 + fold_idx)
@@ -143,6 +187,8 @@ def run_fold(args):
     for n_inducing in inducing_list:
         torch.manual_seed(42 + fold_idx)
         np.random.seed(42 + fold_idx)
+
+        print(f"{tag} M={n_inducing} starting...", flush=True)
 
         # Select inducing points
         ip_start = time.perf_counter()
@@ -232,6 +278,15 @@ def run_fold(args):
             else:
                 patience_counter += 1
 
+            if epoch % 5 == 0 or epoch == n_epochs - 1 or (patience > 0 and patience_counter >= patience):
+                gpu_mem = torch.cuda.memory_allocated(device) / 1e9
+                gpu_reserved = torch.cuda.memory_reserved(device) / 1e9
+                print(f"{tag} M={n_inducing} epoch {epoch+1:3d}/{n_epochs}: "
+                      f"loss={avg_loss:.4f} smoothed={smoothed_loss:.4f} "
+                      f"patience={patience_counter}/{patience} "
+                      f"GPU={gpu_mem:.1f}GB alloc/{gpu_reserved:.1f}GB reserved "
+                      f"({epoch_elapsed:.1f}s)", flush=True)
+
             if patience > 0 and patience_counter >= patience:
                 stopped_epoch = epoch + 1
                 break
@@ -279,6 +334,17 @@ def run_fold(args):
             'residual_period_days': model.residual_periodic.period_length.item() * scaler.scale_[doy_idx],
             'noise': likelihood.noise.item(),
         }
+
+        print(f"{tag} M={n_inducing} done: R²_log={r2_log:.3f} RMSE_log={rmse_log:.4f} "
+              f"R²_orig={r2_orig:.3f} | epochs={stopped_epoch}/{n_epochs} "
+              f"(best={best_epoch+1}) train={train_time:.1f}s", flush=True)
+        print(f"{tag} M={n_inducing} params: "
+              f"base={params['base_scale']:.3f} summer={params['summer_scale']:.3f} "
+              f"winter={params['winter_scale']:.3f} seasonal={params['seasonal_scale']:.3f} "
+              f"noise={params['noise']:.4f} | "
+              f"periods: aot={params['aot_period_days']:.1f}d "
+              f"smog={params['smog_period_days']:.1f}d "
+              f"resid={params['residual_period_days']:.1f}d", flush=True)
 
         inducing_results.append({
             'n_inducing': n_inducing,
@@ -343,8 +409,15 @@ def main():
                         help='Comma-separated list of state abbreviations to sample LOSO sites from (e.g. MT,ID,WY). If omitted, samples from all states.')
     args = parser.parse_args()
 
+    run_tag = get_run_tag()
+    run_dir = f'runs/{run_tag}'
+    tee = Tee(f'{run_dir}/run_log.log')
+    sys.stdout = tee
+    sys.stderr = tee
+
     inducing_list = [int(x) for x in args.n_inducing.split(',')]
 
+    print(f"Run tag: {run_tag}")
     print(f"Configuration: n_gpus={args.n_gpus}, n_epochs={args.n_epochs}, "
           f"batch_size={args.batch_size}, patience={args.patience}, lr={args.lr}")
     states_desc = args.states if args.states else 'all'
@@ -443,8 +516,8 @@ def main():
         'state': [loso_site_states[s] for s in loso_sites],
         'n_obs': [(df_clean['ll_id'] == s).sum() for s in loso_sites],
     })
-    sites_df.to_csv('loso_sites.csv', index=False)
-    print("  Saved to loso_sites.csv")
+    sites_df.to_csv(f'{run_dir}/loso_sites.csv', index=False)
+    print(f"  Saved to {run_dir}/loso_sites.csv")
 
     # Prepare fold arguments
     fold_args = []
@@ -468,7 +541,7 @@ def main():
 
     results = []
 
-    n_workers = n_gpus * 5 # 4*5 = 20 --> run all folds at once! 
+    n_workers = n_gpus * 1 # 4*5 = 20 --> run all folds at once! 
 
     #with mp.Pool(processes=n_gpus, maxtasksperchild=1) as pool:
     with mp.Pool(processes=n_workers) as pool:
@@ -479,17 +552,32 @@ def main():
 
         for site, ar in async_results:
             try:
-                result = ar.get(timeout=7200)  # 2hr timeout per fold
+                result = ar.get()  # no timeout
                 results.append(result)
-                best = max(result['inducing_results'], key=lambda r: r['n_inducing'])
-                r2 = best['metrics']['r2_log']
+                elapsed = time.perf_counter() - cv_start
                 gpu = result['gpu_id']
                 st = result['state']
-                tt = best['timing']['train_time']
-                ep = best['timing']['stopped_epoch']
-                print(f"  Fold {result['fold_idx']:2d} (GPU {gpu}) [{st}] site={result['site']}: "
-                      f"R²={r2:.3f} (M={best['n_inducing']}), "
-                      f"epochs={ep}, train={tt:.1f}s")
+                print(f"\n  Fold {result['fold_idx']:2d} complete (GPU {gpu}) [{st}] "
+                      f"site={result['site']} "
+                      f"(n_train={result['n_train']:,}, n_test={result['n_test']:,}) "
+                      f"[{elapsed/60:.1f}min elapsed]")
+                for ir in result['inducing_results']:
+                    m = ir['metrics']
+                    t = ir['timing']
+                    print(f"    M={ir['n_inducing']:5d}: "
+                          f"R²_log={m['r2_log']:.3f} RMSE_log={m['rmse_log']:.4f} "
+                          f"R²_orig={m['r2_orig']:.3f} RMSE_orig={m['rmse_orig']:.2f} | "
+                          f"epochs={t['stopped_epoch']} train={t['train_time']:.1f}s")
+                # Print params for largest inducing count
+                best = max(result['inducing_results'], key=lambda r: r['n_inducing'])
+                p = best['params']
+                print(f"    Params (M={best['n_inducing']}): "
+                      f"base={p['base_scale']:.3f} summer={p['summer_scale']:.3f} "
+                      f"winter={p['winter_scale']:.3f} seasonal={p['seasonal_scale']:.3f} "
+                      f"noise={p['noise']:.4f}")
+                print(f"    Periods: aot={p['aot_period_days']:.1f}d "
+                      f"smog={p['smog_period_days']:.1f}d "
+                      f"resid={p['residual_period_days']:.1f}d")
             except Exception as e:
                 import traceback
                 print(f"  Fold for site {site} FAILED: {type(e).__name__}: {e}")
@@ -578,7 +666,7 @@ def main():
 
     # Save summary CSV
     summary_df = pd.DataFrame(summary_rows)
-    summary_df.to_csv('svgp_summary.csv', index=False)
+    summary_df.to_csv(f'{run_dir}/svgp_summary.csv', index=False)
 
     # Save per-site metrics for each inducing count
     site_rows = []
@@ -611,7 +699,7 @@ def main():
                 **{f'param_{k}': v for k, v in ir['params'].items()},
             })
     site_df = pd.DataFrame(site_rows)
-    site_df.to_csv('svgp_site_metrics.csv', index=False)
+    site_df.to_csv(f'{run_dir}/svgp_site_metrics.csv', index=False)
 
     # Save fold timings
     timing_rows = []
@@ -627,7 +715,7 @@ def main():
                 **ir['timing'],
             })
     timing_df = pd.DataFrame(timing_rows)
-    timing_df.to_csv('svgp_fold_timings.csv', index=False)
+    timing_df.to_csv(f'{run_dir}/svgp_fold_timings.csv', index=False)
 
     # Save predictions for all inducing counts
     for n_ind in inducing_list:
@@ -651,7 +739,7 @@ def main():
         actuals_ind = np.concatenate(all_actuals_ind)
         vars_ind = np.concatenate(all_vars_ind)
         features_ind = np.concatenate(all_features_ind)
-        np.savez(f'svgp_predictions_M{n_ind}.npz',
+        np.savez(f'{run_dir}/svgp_predictions_M{n_ind}.npz',
                  predictions=preds_ind, actuals=actuals_ind,
                  pred_var=vars_ind,
                  pred_pm25=np.exp(preds_ind) - 1,
@@ -682,7 +770,7 @@ def main():
         'total_cv_time': cv_total_time,
     }
 
-    with open('svgp_results.json', 'w') as f:
+    with open(f'{run_dir}/svgp_results.json', 'w') as f:
         json.dump(output, f, indent=2)
 
     # Save per-fold losses
@@ -692,12 +780,34 @@ def main():
             key = f"{r['site']}_M{ir['n_inducing']}"
             fold_losses[key] = ir['losses']
 
-    with open('svgp_fold_losses.json', 'w') as f:
+    with open(f'{run_dir}/svgp_fold_losses.json', 'w') as f:
         json.dump(fold_losses, f)
 
-    print(f"\nResults saved to svgp_*.{{json,csv,npz}}")
-    print(f"Selected sites saved to loso_sites.csv")
+    # Save model params CSV (one row per fold x inducing count)
+    param_rows = []
+    for r in results:
+        for ir in r['inducing_results']:
+            param_rows.append({
+                'fold': r['fold_idx'],
+                'site': r['site'],
+                'state': r['state'],
+                'n_inducing': ir['n_inducing'],
+                'r2_log': ir['metrics']['r2_log'],
+                'r2_orig': ir['metrics']['r2_orig'],
+                **ir['params'],
+            })
+    param_df = pd.DataFrame(param_rows)
+    param_df.to_csv(f'{run_dir}/model_params.csv', index=False)
+
+    print(f"\nAll results saved to {run_dir}/")
+    print(f"  run_log.log, svgp_results.json, svgp_fold_losses.json")
+    print(f"  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv")
+    print(f"  svgp_predictions_M*.npz, loso_sites.csv")
     print(f"Total wall time: {cv_total_time:.1f}s ({cv_total_time/60:.1f} min)")
+
+    sys.stdout = tee.stdout
+    sys.stderr = tee.stdout
+    tee.close()
 
 
 if __name__ == '__main__':
