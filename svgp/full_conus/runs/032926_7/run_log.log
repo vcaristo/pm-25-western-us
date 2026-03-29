@@ -1,0 +1,133 @@
+Run tag: 032926_7
+Configuration: n_gpus=1, workers_per_gpu=3, n_epochs=1, batch_size=32768, patience=15, lr=0.01
+Full CONUS dataset — 3 random LOSO sites (states: MT)
+Inducing point sweep: [4096]
+Available CUDA devices: 4
+Using 1 GPUs
+
+Loading cached dataset...
+
+1,883,144 observations after dropna, 932 sites
+Features (17): ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP', 'lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k', 'heavy_industrial_ind1', 'housing', 'day_of_year']
+
+Filtering to states: ['MT'] → 56 eligible sites
+
+Selected 3 LOSO sites (from MT):
+  108720_47582 (MT): 1,999 observations
+  115553_48392 (MT): 5,747 observations
+  108512_45780 (MT): 3,338 observations
+  Saved to runs/032926_7/loso_sites.csv
+
+Launching 3 folds across 1 GPUs...
+Each fold trains 1 SVGP models (inducing sweep)
+~1,883,144 training points per fold
+  Fold for site 108720_47582 FAILED: OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 264.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.08 GiB memory in use. Process 3191808 has 262.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 18.77 GiB is allocated by PyTorch, and 3.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 248, in run_fold
+    output = model(batch_x)
+             ^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/models/approximate_gp.py", line 114, in __call__
+    return self.variational_strategy(inputs, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 272, in __call__
+    return super().__call__(x, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/_variational_strategy.py", line 347, in __call__
+    return super().__call__(
+           ^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/module.py", line 82, in __call__
+    outputs = self.forward(*inputs, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 197, in forward
+    induc_data_covar = full_covar[..., :num_induc, num_induc:].to_dense()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/utils/memoize.py", line 59, in g
+    return _add_to_cache(self, cache_name, method(self, *args, **kwargs), *args, kwargs_pkl=kwargs_pkl)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/operators/sum_linear_operator.py", line 81, in to_dense
+    return (sum(linear_op.to_dense() for linear_op in self.linear_ops)).contiguous()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 264.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.08 GiB memory in use. Process 3191808 has 262.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 18.77 GiB is allocated by PyTorch, and 3.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 557, in main
+    result = ar.get()  # no timeout
+             ^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 774, in get
+    raise self._value
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 264.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.08 GiB memory in use. Process 3191808 has 262.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 18.77 GiB is allocated by PyTorch, and 3.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  Fold for site 115553_48392 FAILED: OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 8.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Process 3191807 has 19.08 GiB memory in use. Including non-PyTorch memory, this process has 518.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 195.25 MiB is allocated by PyTorch, and 18.75 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 248, in run_fold
+    output = model(batch_x)
+             ^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/models/approximate_gp.py", line 114, in __call__
+    return self.variational_strategy(inputs, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 272, in __call__
+    return super().__call__(x, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/_variational_strategy.py", line 343, in __call__
+    variational_dist_u = self.variational_distribution
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/utils/memoize.py", line 59, in g
+    return _add_to_cache(self, cache_name, method(self, *args, **kwargs), *args, kwargs_pkl=kwargs_pkl)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/_variational_strategy.py", line 124, in variational_distribution
+    return self._variational_distribution()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/_variational_distribution.py", line 59, in __call__
+    return self.forward()
+           ^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/cholesky_variational_distribution.py", line 48, in forward
+    lower_mask = torch.ones(self.chol_variational_covar.shape[-2:], dtype=dtype, device=device).tril(0)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 8.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Process 3191807 has 19.08 GiB memory in use. Including non-PyTorch memory, this process has 518.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 195.25 MiB is allocated by PyTorch, and 18.75 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 557, in main
+    result = ar.get()  # no timeout
+             ^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 774, in get
+    raise self._value
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 8.38 MiB is free. Process 2465153 has 1.21 GiB memory in use. Process 3191807 has 19.08 GiB memory in use. Including non-PyTorch memory, this process has 518.00 MiB memory in use. Process 3191806 has 26.57 GiB memory in use. Of the allocated memory 195.25 MiB is allocated by PyTorch, and 18.75 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+  Fold  2 complete (GPU 0) [MT] site=108512_45780 (n_train=1,879,806, n_test=3,338) [7.7min elapsed]
+    M= 4096: R²_log=-0.023 RMSE_log=0.6887 R²_orig=0.120 RMSE_orig=4.24 | epochs=1 train=351.7s
+    Params (M=4096): base=0.459 summer=0.645 winter=0.616 seasonal=0.688 noise=0.7994
+    Periods: aot=395.7d smog=403.3d resid=390.8d
+
+Total CV time: 465.0s (7.7 min)
+
+======================================================================
+SVGP LOSO CV Results (Full CONUS, 3 sites, 1 GPUs)
+n_epochs=1, batch_size=32768, patience=15, lr=0.01
+======================================================================
+
+  M=4096 inducing points:
+    Log scale:  RMSE=0.6887, MAE=0.5084, R²=-0.0227
+    Orig scale: RMSE=4.24, MAE=3.00, R²=0.1196
+    Timing:     train=351.67s, infer=0.208s, ip=107.98s (mean/fold)
+    Epochs:     mean=1.0
+
+All results saved to runs/032926_7/
+  run_log.log, svgp_results.json, svgp_fold_losses.json
+  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv
+  svgp_predictions_M*.npz, loso_sites.csv
+Total wall time: 465.0s (7.7 min)

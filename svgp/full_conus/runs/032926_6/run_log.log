@@ -1,0 +1,107 @@
+Run tag: 032926_6
+Configuration: n_gpus=1, workers_per_gpu=2, n_epochs=1, batch_size=32768, patience=15, lr=0.01
+Full CONUS dataset — 2 random LOSO sites (states: MT)
+Inducing point sweep: [4096]
+Available CUDA devices: 4
+Using 1 GPUs
+
+Loading cached dataset...
+
+1,883,144 observations after dropna, 932 sites
+Features (17): ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP', 'lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k', 'heavy_industrial_ind1', 'housing', 'day_of_year']
+
+Filtering to states: ['MT'] → 56 eligible sites
+
+Selected 2 LOSO sites (from MT):
+  108720_47582 (MT): 1,999 observations
+  115553_48392 (MT): 5,747 observations
+  Saved to runs/032926_6/loso_sites.csv
+
+Launching 2 folds across 1 GPUs...
+Each fold trains 1 SVGP models (inducing sweep)
+~1,883,144 training points per fold
+  Fold for site 108720_47582 FAILED: OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 17.69 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.59 GiB memory in use. Process 3191362 has 26.57 GiB memory in use. Of the allocated memory 19.28 GiB is allocated by PyTorch, and 3.28 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 248, in run_fold
+    output = model(batch_x)
+             ^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/models/approximate_gp.py", line 114, in __call__
+    return self.variational_strategy(inputs, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 272, in __call__
+    return super().__call__(x, prior=prior, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/_variational_strategy.py", line 347, in __call__
+    return super().__call__(
+           ^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/module.py", line 82, in __call__
+    outputs = self.forward(*inputs, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 203, in forward
+    L = self._cholesky_factor(induc_induc_covar)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/utils/memoize.py", line 76, in g
+    return _add_to_cache_ignore_args(self, cache_name, method(self, *args, **kwargs))
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/gpytorch/variational/variational_strategy.py", line 104, in _cholesky_factor
+    L = psd_safe_cholesky(to_dense(induc_induc_covar).type(_linalg_dtype_cholesky.value()))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/operators/_linear_operator.py", line 2993, in to_dense
+    return obj.to_dense()
+           ^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/utils/memoize.py", line 59, in g
+    return _add_to_cache(self, cache_name, method(self, *args, **kwargs), *args, kwargs_pkl=kwargs_pkl)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/operators/sum_linear_operator.py", line 81, in to_dense
+    return (sum(linear_op.to_dense() for linear_op in self.linear_ops)).contiguous()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/operators/sum_linear_operator.py", line 81, in <genexpr>
+    return (sum(linear_op.to_dense() for linear_op in self.linear_ops)).contiguous()
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/utils/memoize.py", line 59, in g
+    return _add_to_cache(self, cache_name, method(self, *args, **kwargs), *args, kwargs_pkl=kwargs_pkl)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/site-packages/linear_operator/operators/sum_linear_operator.py", line 81, in to_dense
+    return (sum(linear_op.to_dense() for linear_op in self.linear_ops)).contiguous()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 17.69 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.59 GiB memory in use. Process 3191362 has 26.57 GiB memory in use. Of the allocated memory 19.28 GiB is allocated by PyTorch, and 3.28 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vcaristo/pm_data/svgp/full_conus/loso_cv_svgp_parallel.py", line 557, in main
+    result = ar.get()  # no timeout
+             ^^^^^^^^
+  File "/home/vcaristo/miniconda3/envs/patel/lib/python3.11/multiprocessing/pool.py", line 774, in get
+    raise self._value
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 47.41 GiB of which 17.69 MiB is free. Process 2465153 has 1.21 GiB memory in use. Including non-PyTorch memory, this process has 19.59 GiB memory in use. Process 3191362 has 26.57 GiB memory in use. Of the allocated memory 19.28 GiB is allocated by PyTorch, and 3.28 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+  Fold  1 complete (GPU 0) [MT] site=115553_48392 (n_train=1,877,397, n_test=5,747) [7.6min elapsed]
+    M= 4096: R²_log=0.354 RMSE_log=0.5243 R²_orig=0.278 RMSE_orig=8.78 | epochs=1 train=350.1s
+    Params (M=4096): base=0.458 summer=0.645 winter=0.621 seasonal=0.688 noise=0.8000
+    Periods: aot=394.4d smog=404.5d resid=390.5d
+
+Total CV time: 457.0s (7.6 min)
+
+======================================================================
+SVGP LOSO CV Results (Full CONUS, 2 sites, 1 GPUs)
+n_epochs=1, batch_size=32768, patience=15, lr=0.01
+======================================================================
+
+  M=4096 inducing points:
+    Log scale:  RMSE=0.5243, MAE=0.4117, R²=0.3535
+    Orig scale: RMSE=8.78, MAE=5.35, R²=0.2776
+    Timing:     train=350.09s, infer=0.309s, ip=101.57s (mean/fold)
+    Epochs:     mean=1.0
+
+All results saved to runs/032926_6/
+  run_log.log, svgp_results.json, svgp_fold_losses.json
+  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv
+  svgp_predictions_M*.npz, loso_sites.csv
+Total wall time: 457.0s (7.6 min)

@@ -1,0 +1,2 @@
+fold,site,state,n_inducing,n_train,n_test,ip_selection_time,train_time,infer_time,total_fold_time,stopped_epoch,best_epoch,epoch_times,batch_time_stats
+1,115553_48392,MT,4096,1877397,5747,101.56894765095785,350.091097174678,0.30926391296088696,451.96930873859674,1,0,[350.08946175687015],"[{'mean': 5.7508174728778805, 'min': 2.203790931031108, 'max': 6.37023162515834, 'n_batches': 58}]"

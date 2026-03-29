@@ -1,0 +1,51 @@
+Run tag: 032926_2
+Configuration: n_gpus=1, workers_per_gpu=2, n_epochs=1, batch_size=16384, patience=15, lr=0.01
+Full CONUS dataset — 2 random LOSO sites (states: MT)
+Inducing point sweep: [4096]
+Available CUDA devices: 4
+Using 1 GPUs
+
+Loading cached dataset...
+
+1,883,144 observations after dropna, 932 sites
+Features (17): ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP', 'lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k', 'heavy_industrial_ind1', 'housing', 'day_of_year']
+
+Filtering to states: ['MT'] → 56 eligible sites
+
+Selected 2 LOSO sites (from MT):
+  108720_47582 (MT): 1,999 observations
+  115553_48392 (MT): 5,747 observations
+  Saved to runs/032926_2/loso_sites.csv
+
+Launching 2 folds across 1 GPUs...
+Each fold trains 1 SVGP models (inducing sweep)
+~1,883,144 training points per fold
+
+  Fold  0 complete (GPU 0) [MT] site=108720_47582 (n_train=1,881,145, n_test=1,999) [15.9min elapsed]
+    M= 4096: R²_log=0.402 RMSE_log=0.4233 R²_orig=0.372 RMSE_orig=2.98 | epochs=1 train=850.0s
+    Params (M=4096): base=0.368 summer=0.634 winter=0.602 seasonal=0.682 noise=0.7297
+    Periods: aot=408.5d smog=418.2d resid=395.3d
+
+  Fold  1 complete (GPU 0) [MT] site=115553_48392 (n_train=1,877,397, n_test=5,747) [15.9min elapsed]
+    M= 4096: R²_log=0.386 RMSE_log=0.5111 R²_orig=0.298 RMSE_orig=8.65 | epochs=1 train=848.0s
+    Params (M=4096): base=0.369 summer=0.638 winter=0.609 seasonal=0.690 noise=0.7299
+    Periods: aot=403.0d smog=417.2d resid=393.2d
+
+Total CV time: 956.3s (15.9 min)
+
+======================================================================
+SVGP LOSO CV Results (Full CONUS, 2 sites, 1 GPUs)
+n_epochs=1, batch_size=16384, patience=15, lr=0.01
+======================================================================
+
+  M=4096 inducing points:
+    Log scale:  RMSE=0.4899, MAE=0.3808, R²=0.6325
+    Orig scale: RMSE=7.61, MAE=4.25, R²=0.4218
+    Timing:     train=849.01s, infer=0.451s, ip=100.23s (mean/fold)
+    Epochs:     mean=1.0
+
+All results saved to runs/032926_2/
+  run_log.log, svgp_results.json, svgp_fold_losses.json
+  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv
+  svgp_predictions_M*.npz, loso_sites.csv
+Total wall time: 956.3s (15.9 min)

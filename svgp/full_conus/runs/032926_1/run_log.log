@@ -1,0 +1,45 @@
+Run tag: 032926_1
+Configuration: n_gpus=1, workers_per_gpu=1, n_epochs=1, batch_size=16384, patience=15, lr=0.01
+Full CONUS dataset — 1 random LOSO sites (states: MT)
+Inducing point sweep: [4096]
+Available CUDA devices: 4
+Using 1 GPUs
+
+Loading cached dataset...
+
+1,883,144 observations after dropna, 932 sites
+Features (17): ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP', 'lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k', 'heavy_industrial_ind1', 'housing', 'day_of_year']
+
+Filtering to states: ['MT'] → 56 eligible sites
+
+Selected 1 LOSO sites (from MT):
+  108720_47582 (MT): 1,999 observations
+  Saved to runs/032926_1/loso_sites.csv
+
+Launching 1 folds across 1 GPUs...
+Each fold trains 1 SVGP models (inducing sweep)
+~1,883,144 training points per fold
+
+  Fold  0 complete (GPU 0) [MT] site=108720_47582 (n_train=1,881,145, n_test=1,999) [7.8min elapsed]
+    M= 4096: R²_log=0.402 RMSE_log=0.4233 R²_orig=0.372 RMSE_orig=2.98 | epochs=1 train=387.2s
+    Params (M=4096): base=0.368 summer=0.634 winter=0.602 seasonal=0.682 noise=0.7297
+    Periods: aot=408.5d smog=418.2d resid=395.3d
+
+Total CV time: 466.5s (7.8 min)
+
+======================================================================
+SVGP LOSO CV Results (Full CONUS, 1 sites, 1 GPUs)
+n_epochs=1, batch_size=16384, patience=15, lr=0.01
+======================================================================
+
+  M=4096 inducing points:
+    Log scale:  RMSE=0.4233, MAE=0.3292, R²=0.4016
+    Orig scale: RMSE=2.98, MAE=1.43, R²=0.3722
+    Timing:     train=387.16s, infer=0.152s, ip=74.88s (mean/fold)
+    Epochs:     mean=1.0
+
+All results saved to runs/032926_1/
+  run_log.log, svgp_results.json, svgp_fold_losses.json
+  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv
+  svgp_predictions_M*.npz, loso_sites.csv
+Total wall time: 466.5s (7.8 min)

@@ -1,0 +1,57 @@
+Run tag: 032926_3
+Configuration: n_gpus=1, workers_per_gpu=3, n_epochs=1, batch_size=16384, patience=15, lr=0.01
+Full CONUS dataset — 3 random LOSO sites (states: MT)
+Inducing point sweep: [4096]
+Available CUDA devices: 4
+Using 1 GPUs
+
+Loading cached dataset...
+
+1,883,144 observations after dropna, 932 sites
+Features (17): ['aot', 'wind', 'hgt', 'cld', 'longwave', 'rh', 'tmax', 'smogI', 'smogP', 'lat', 'lon', 'logpd2500g', 'minf_5000', 'sd50k', 'heavy_industrial_ind1', 'housing', 'day_of_year']
+
+Filtering to states: ['MT'] → 56 eligible sites
+
+Selected 3 LOSO sites (from MT):
+  108720_47582 (MT): 1,999 observations
+  115553_48392 (MT): 5,747 observations
+  108512_45780 (MT): 3,338 observations
+  Saved to runs/032926_3/loso_sites.csv
+
+Launching 3 folds across 1 GPUs...
+Each fold trains 1 SVGP models (inducing sweep)
+~1,883,144 training points per fold
+
+  Fold  0 complete (GPU 0) [MT] site=108720_47582 (n_train=1,881,145, n_test=1,999) [24.8min elapsed]
+    M= 4096: R²_log=0.402 RMSE_log=0.4233 R²_orig=0.372 RMSE_orig=2.98 | epochs=1 train=1281.3s
+    Params (M=4096): base=0.368 summer=0.634 winter=0.602 seasonal=0.682 noise=0.7297
+    Periods: aot=408.5d smog=418.2d resid=395.3d
+
+  Fold  1 complete (GPU 0) [MT] site=115553_48392 (n_train=1,877,397, n_test=5,747) [24.8min elapsed]
+    M= 4096: R²_log=0.386 RMSE_log=0.5111 R²_orig=0.298 RMSE_orig=8.65 | epochs=1 train=1280.4s
+    Params (M=4096): base=0.369 summer=0.638 winter=0.609 seasonal=0.690 noise=0.7299
+    Periods: aot=403.0d smog=417.2d resid=393.2d
+
+  Fold  2 complete (GPU 0) [MT] site=108512_45780 (n_train=1,879,806, n_test=3,338) [24.8min elapsed]
+    M= 4096: R²_log=0.079 RMSE_log=0.6534 R²_orig=0.200 RMSE_orig=4.04 | epochs=1 train=1280.6s
+    Params (M=4096): base=0.371 summer=0.640 winter=0.601 seasonal=0.690 noise=0.7294
+    Periods: aot=405.8d smog=416.1d resid=394.7d
+
+Total CV time: 1489.1s (24.8 min)
+
+======================================================================
+SVGP LOSO CV Results (Full CONUS, 3 sites, 1 GPUs)
+n_epochs=1, batch_size=16384, patience=15, lr=0.01
+======================================================================
+
+  M=4096 inducing points:
+    Log scale:  RMSE=0.5444, MAE=0.4099, R²=0.5300
+    Orig scale: RMSE=6.73, MAE=3.81, R²=0.4351
+    Timing:     train=1280.73s, infer=0.499s, ip=201.21s (mean/fold)
+    Epochs:     mean=1.0
+
+All results saved to runs/032926_3/
+  run_log.log, svgp_results.json, svgp_fold_losses.json
+  svgp_summary.csv, svgp_site_metrics.csv, svgp_fold_timings.csv, model_params.csv
+  svgp_predictions_M*.npz, loso_sites.csv
+Total wall time: 1489.1s (24.8 min)

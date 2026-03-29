@@ -1,0 +1,44 @@
+{
+  "config": {
+    "inducing_list": [
+      4096
+    ],
+    "n_epochs": 1,
+    "batch_size": 16384,
+    "patience": 15,
+    "lr": 0.01,
+    "n_loso_sites": 2,
+    "loso_sites": [
+      10872047582,
+      11555348392
+    ],
+    "loso_site_states": {
+      "108720_47582": "MT",
+      "115553_48392": "MT"
+    },
+    "n_gpus": 1,
+    "n_total_obs": 1883144,
+    "n_total_sites": 932,
+    "states_filter": "MT",
+    "training": "svgp_minibatch_full_conus"
+  },
+  "summary": [
+    {
+      "n_inducing": 4096,
+      "rmse_log": 0.48994108125898317,
+      "mae_log": 0.380797823241634,
+      "r2_log": 0.632518375507834,
+      "rmse_orig": 7.605857912187885,
+      "mae_orig": 4.252028788113007,
+      "r2_orig": 0.4217778922690604,
+      "mean_train_time": 849.0076481557917,
+      "mean_infer_time": 0.45133358030579984,
+      "mean_ip_time": 100.23045758204535,
+      "mean_fold_time": 949.6894393181428,
+      "total_wall_time": 1899.3788786362857,
+      "mean_stopped_epoch": 1.0,
+      "n_predictions": 7746
+    }
+  ],
+  "total_cv_time": 956.2924858187325
+}
