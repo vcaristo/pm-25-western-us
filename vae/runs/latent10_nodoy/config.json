@@ -1,0 +1,17 @@
+{
+  "name": "latent10_nodoy",
+  "K": 10,
+  "latent_dim": 10,
+  "beta": 1,
+  "kl_warmup_epochs": 0,
+  "hidden_dims": [
+    128,
+    64
+  ],
+  "exclude_doy": true,
+  "batch_size": 4096,
+  "lr": 0.001,
+  "epochs": 100,
+  "patience": 10,
+  "notes": "latent_dim=10 without DOY"
+}

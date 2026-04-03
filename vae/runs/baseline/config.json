@@ -1,0 +1,14 @@
+{
+    "name": "baseline",
+    "K": 10,
+    "latent_dim": 2,
+    "beta": 1.0,
+    "kl_warmup_epochs": 0,
+    "hidden_dims": [128, 64],
+    "exclude_doy": false,
+    "batch_size": 4096,
+    "lr": 1e-3,
+    "epochs": 50,
+    "patience": 10,
+    "notes": "first run, includes day_of_year"
+}

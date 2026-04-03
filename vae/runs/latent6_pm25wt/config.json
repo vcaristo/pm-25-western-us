@@ -1,0 +1,15 @@
+{
+    "name": "latent6_pm25wt",
+    "K": 10,
+    "latent_dim": 6,
+    "beta": 1.0,
+    "kl_warmup_epochs": 0,
+    "hidden_dims": [128, 64],
+    "exclude_doy": true,
+    "batch_size": 4096,
+    "lr": 1e-3,
+    "epochs": 100,
+    "patience": 10,
+    "feature_weights": [1.634, 2.927, 2.779, 2.597, 2.746, 2.723, 2.961, 1.349, 5.0, 2.413, 2.032, 4.089, 3.325, 1.004, 1.703, 1.537],
+    "notes": "latent6 with recon loss weighted by |corr(feature, log_pm25)|, range [1, 5]"
+}

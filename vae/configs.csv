@@ -1,0 +1,6 @@
+name,K,latent_dim,beta,kl_warmup_epochs,hidden_dims,exclude_doy,batch_size,lr,epochs,patience,notes,best_val_loss,final_recon,final_kl,active_components,mean_feat_r2,overall_r2,train_time_s,stopped_epoch
+baseline,10,2,1.0,0,"128,64",False,4096,0.001,50,10,-,,,,,,,,
+latent6_nodoy,10,6,1.0,0,"128,64",True,4096,0.001,100,10,latent_dim=6 without DOY,8.8697,4.3966,4.4734,10.0,0.7216,0.7215,868.0,100.0
+latent10_nodoy,10,10,1.0,0,"128,64",True,4096,0.001,100,10,latent_dim=10 without DOY,8.8711,4.3998,4.4713,10.0,0.7236,0.7235,886.0,100.0
+latent2_nodoy,10,2,1.0,0,"128,64",True,4096,0.001,100,10,baseline repeat without DOY,9.3473,5.7744,3.5828,10.0,0.6405,0.6404,898.0,100.0
+latent6_pm25wt,10,6,1.0,0,"128,64",True,4096,0.001,100,10,"latent6 with recon loss weighted by |corr(feature, log_pm25)|, range [1, 5]",13.1659,5.3901,7.7758,10.0,0.8513,0.8512,706,100.0
